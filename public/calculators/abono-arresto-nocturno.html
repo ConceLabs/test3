@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculadora Abonos por Arresto Nocturno</title>
+  <style>/* Specificity increased by adding html */
+    html, body { /* Apply to html and body for full coverage */
+      font-family: sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;  /* Ensure no default body margins */
+      padding: 0; /* Ensure no default body padding */
+      box-sizing: border-box; /* Consistent box model */
+    } /* Added comment for clarity */
+
+    .calculator {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 100%; /* Make calculator take full width of its container */
+      max-width: 340px; /* Max width for the calculator */
+      box-sizing: border-box;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      font-size: 1.5em; /* Adjusted for better fit */
+      margin-top: 0;
+      margin-bottom: 1em;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      font-size: 0.9em;
+    }
+
+    input[type="date"],
+    input[type="number"] {
+      width: 100%;
+      padding: 10px; /* Increased padding */
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 12px 15px; /* Increased padding */
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 1em;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #result {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+    }
+
+    .result-message {
+      font-weight: bold;
+      margin-bottom: 5px;
+      text-align: center;
+      font-size: 1.1em;
+    }
+
+    .result-details {
+      font-style: italic;
+      color: #555;
+      font-size: 0.9em;
+    }
+    .result-details p {
+        margin: 5px 0;
+    }
+  
+/* Apply styles specifically within .calculator to avoid conflicts */
+.calculator .abono-result { /* Simplified selector as it's in iframe */
+  background-color: #e9ecef;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 15px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.calculator .abono-result p {
+  font-size: 1.1em;
+  margin: 5px 0;
+}
+
+.calculator .abono-result .valor {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #28a745;
+}
+
+/* Corrected class name and applied to the specific element */
+.calculator #result { /* Style the container */
+  margin-top: 20px;
+  /* Add other styles for the result container if needed */
+}
+  
+    /* Media query para pantallas pequeñas (móviles) */
+    @media (max-width: 480px) {
+      .calculator {
+        width: 100%; /* Occupy full available width */
+        padding: 15px;
+        box-shadow: none; /* Optional: remove shadow on mobile for cleaner look */
+      }
+      body, html {
+        background-color: #fff; /* Match calculator background on mobile */
+      }
+       h1 {
+        font-size: 1.3em;
+       }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="calculator">
+    <h1>Abono por Arresto Nocturno</h1>
+    <div class="form-group">
+      <label for="startDate">Primer día de arresto</label>
+      <input type="date" id="startDate" required>
+    </div>
+    <div class="form-group">
+      <label for="endDate">Último día de arresto</label>
+      <input type="date" id="endDate" required>
+    </div>
+    <div class="form-group">
+      <label for="nonComplianceDays">Días de incumplimiento</label>
+      <input type="number" id="nonComplianceDays" min="0" value="0" placeholder="0" required>
+    </div>
+    <button id="calculateBtn">Calcular días y abono</button>
+    <div id="result" style="display: none;">
+      <div class="result-message">Resultados:</div>
+      <div class="result-details">
+        <p>Período total: <span id="totalDays"></span></p>
+        <p>Días efectivos de arresto: <span id="effectiveDays"></span></p>
+      </div>
+      <div class="abono-result">
+        <p>DÍAS DE ABONO:</p>
+        <p class="valor" id="abonoDays"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function initCalculadora() {
+      const s = document.getElementById('startDate');
+      const e = document.getElementById('endDate');
+      const n = document.getElementById('nonComplianceDays');
+      const btn = document.getElementById('calculateBtn');
+      const out = document.getElementById('result');
+      const totalDaysEl = document.getElementById('totalDays');
+      const effectiveDaysEl = document.getElementById('effectiveDays');
+      const abonoDaysEl = document.getElementById('abonoDays');
+
+      // Inicializar fechas con hoy
+      const hoy = new Date().toISOString().substr(0,10);
+      if (s) s.value = hoy;
+      if (e) e.value = hoy;
+
+      if (btn) {
+        btn.addEventListener('click', calcular);
+      }
+      
+      [s,e,n].forEach(i => {
+        if (i) {
+            i.addEventListener('keypress', evt => {
+                if (evt.key === 'Enter') {
+                    evt.preventDefault(); // Prevent form submission if any
+                    calcular();
+                }
+            });
+        }
+      });
+      
+      // Mejorar la experiencia móvil ocultando el teclado al pulsar calcular
+      if (btn) {
+        btn.addEventListener('touchstart', function(event) {
+          // event.preventDefault(); // May prevent click if not careful
+          if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+          }
+        }, { passive: true }); // Use passive listener for touchstart for performance
+      }
+
+
+      function calcular() {
+        if (!s || !e || !n || !out || !totalDaysEl || !effectiveDaysEl || !abonoDaysEl) {
+            console.error("Uno o más elementos del DOM no se encontraron.");
+            return;
+        }
+        if (!s.value || !e.value) {
+            alert("Por favor, seleccione las fechas de inicio y fin.");
+            return;
+        }
+
+        const d1 = new Date(s.value);
+        const d2 = new Date(e.value);
+
+        if (d2 < d1) {
+            alert("La fecha de fin no puede ser anterior a la fecha de inicio.");
+            return;
+        }
+
+        const inc = parseInt(n.value)||0;
+        if (inc < 0) {
+            alert("Los días de incumplimiento no pueden ser negativos.");
+            return;
+        }
+
+
+        const diff = Math.floor((d2 - d1)/(1000*3600*24)) + 1;
+        const efectivos = diff - inc;
+
+        if (efectivos < 0) {
+            alert("Los días efectivos de arresto no pueden ser negativos (revisar días de incumplimiento).");
+            totalDaysEl.textContent = `${diff} día${diff !== 1 ? 's' : ''}`;
+            effectiveDaysEl.textContent = 'Error';
+            abonoDaysEl.textContent = 'Error';
+            out.style.display = 'block';
+            return;
+        }
+        
+        const abono = (efectivos * 8) / 12;
+
+        // Mostrar resultados
+        totalDaysEl.textContent = `${diff} día${diff !== 1 ? 's' : ''}`;
+        effectiveDaysEl.textContent = `${efectivos} día${efectivos !== 1 ? 's' : ''}`;
+        abonoDaysEl.textContent = abono.toFixed(2);
+        
+       out.style.display = 'block'; // Show the result
+       // Optional: Scroll to the result
+       out.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+    })();
+  </script>
+
+</body>
+</html>

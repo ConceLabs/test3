@@ -1,0 +1,6 @@
+{
+  "name": "Biblioteca Jurídica",
+  "description": "Una aplicación para acceder a diversas leyes y documentos legales en Chile, junto con herramientas útiles como una calculadora de abonos por arresto.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}

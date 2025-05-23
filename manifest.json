@@ -1,0 +1,25 @@
+
+{
+  "name": "Biblioteca Jurídica",
+  "short_name": "BiblioJurídica",
+  "description": "Una aplicación para acceder a diversas leyes y documentos legales en Chile.",
+  "icons": [
+    {
+      "src": "/icons/app-icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/app-icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F5F5",
+  "theme_color": "#0D47A1",
+  "orientation": "portrait-primary"
+}
