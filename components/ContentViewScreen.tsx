@@ -129,7 +129,7 @@ const RenderSection: React.FC<{
   searchTerm: string;
   currentHighlightedMatchId: string | null;
 }> = ({ section, fontSize, level, searchTerm, currentHighlightedMatchId }) => {
-  const HeadingTag = `h${Math.min(level + 1, 6)}` as keyof JSX.IntrinsicElements;
+  const HeadingTag = `h${Math.min(level + 1, 6)}` as keyof React.JSX.IntrinsicElements;
   
   return (
     <div className={`mb-6 ${level > 1 ? 'ml-4' : ''}`}>
@@ -212,11 +212,10 @@ const ContentViewScreen: React.FC<ContentViewScreenProps> = ({ document, onBack,
     }
 
     const matches: { elementId: string, articleId: string }[] = [];
-    const processArticle = (article: Article, articleIndex: number) => {
+    const processArticle = (article: Article, _articleIndex: number) => {
       const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-      let match;
       let localIndexInArticle = 0;
-      while ((match = regex.exec(article.text)) !== null) {
+      while (regex.exec(article.text) !== null) {
         matches.push({
           elementId: `match-${article.id}-${localIndexInArticle}`,
           articleId: article.id,
